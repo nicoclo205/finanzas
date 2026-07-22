@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.env
+*.log
+
+# Electron build output (futuro)
+electron/dist/
+electron/out/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -41,6 +41,6 @@ Explícitamente fuera de alcance por ahora: comandos por voz, NFC, módulo de ti
 ## Cómo trabajar en este proyecto (importante)
 
 - **Avances fragmentados.** No implementar una fase completa de una sola vez. Construir en piezas pequeñas y verificables, mostrar el resultado, y esperar confirmación antes de seguir con la siguiente pieza.
-- **Documentar cada avance.** Cada cambio significativo (una pieza terminada, una decisión de arquitectura, un cambio de rumbo) se agrega a `CHANGELOG.md` con fecha, qué cambió y por qué. No dejar avances sin registrar.
+- **Documentar cada avance.** Cada cambio significativo (una pieza terminada, una decisión de arquitectura, un cambio de rumbo) se agrega a `CHANGELOG.md` con fecha, qué cambió y por qué. No dejar avances sin registrar. Además, si el cambio afecta arquitectura, stack, roadmap o estas convenciones de trabajo, `CLAUDE.md` se actualiza en el mismo momento para que no quede desactualizado — ambos archivos se mantienen sincronizados en cada avance.
 - **Diseño de frontend único, no genérico.** Antes de construir o rediseñar cualquier pantalla, usar la skill `frontend-design` para tomar decisiones deliberadas de dirección visual (tipografía, paleta, layout) — evitar el look genérico de plantilla por defecto.
 - **Las carpetas `back_finanzas/` y `front_finanzas/` las crea Nico manualmente.** No generar automáticamente esa estructura de carpetas top-level sin que se pida explícitamente.

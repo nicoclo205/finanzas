@@ -10,3 +10,12 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Repositorio git inicializado.
 - Creados `CLAUDE.md` (documentación viva del proyecto) y este `CHANGELOG.md`.
 - Acordado el modo de trabajo: avances fragmentados con checkpoints, cada avance documentado aquí, diseño de frontend distintivo (skill `frontend-design`), y las carpetas `frontend/`/`backend/` las crea Nico.
+
+## 2026-07-22 — Setup inicial del backend y flujo de trabajo con git
+
+- Carpetas `back_finanzas/` y `front_finanzas/` creadas por Nico; `CLAUDE.md` actualizado para reflejar esos nombres reales (en vez de `backend/`/`frontend/`).
+- Entorno virtual de Python creado en `back_finanzas/venv/`, con dependencias base instaladas: FastAPI, Uvicorn, SQLAlchemy, psycopg2-binary, pydantic-settings, python-dotenv. Versiones fijadas en `back_finanzas/requirements.txt`.
+- `.gitignore` separado por carpeta (`back_finanzas/.gitignore`, `front_finanzas/.gitignore`) en vez de uno único en la raíz, ya que cada carpeta es un proyecto independiente (Python vs. Node/Expo).
+- Creado el repositorio remoto privado en GitHub (`nicoclo205/finanzas`) y hecho el primer push.
+- Creado el esqueleto de carpetas de la arquitectura hexagonal dentro de `back_finanzas/`: `domain/`, `application/`, `application/ports/`, `infrastructure/` (con `infrastructure/api/` e `infrastructure/db/` separando el adaptador REST del adaptador Postgres), cada una como paquete Python vacío.
+- Acordado que cada avance significativo actualiza `CLAUDE.md` (si afecta arquitectura/stack/roadmap/convenciones) y `CHANGELOG.md` (siempre), en el mismo momento — no como tarea aparte al final.

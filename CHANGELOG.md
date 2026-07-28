@@ -19,3 +19,11 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Creado el repositorio remoto privado en GitHub (`nicoclo205/finanzas`) y hecho el primer push.
 - Creado el esqueleto de carpetas de la arquitectura hexagonal dentro de `back_finanzas/`: `domain/`, `application/`, `application/ports/`, `infrastructure/` (con `infrastructure/api/` e `infrastructure/db/` separando el adaptador REST del adaptador Postgres), cada una como paquete Python vacío.
 - Acordado que cada avance significativo actualiza `CLAUDE.md` (si afecta arquitectura/stack/roadmap/convenciones) y `CHANGELOG.md` (siempre), en el mismo momento — no como tarea aparte al final.
+
+## 2026-07-28 — Primera entidad de dominio: `Transaction`
+
+- Creada `back_finanzas/domain/transaction.py`: entidad `Transaction` (dataclass) con `amount`, `transaction_type`, `method`, `date`, `category`, `description` e `id` opcional (se asigna al persistir, no al crear en memoria).
+- Definidos como `Enum` los vocabularios cerrados de la entidad: `TransactionType` (ingreso/gasto), `Method` (efectivo/transferencia/tarjeta débito/crédito), `Category` (comida, transporte, salidas, ocio, trabajo, padres, otro).
+- Creada `back_finanzas/domain/exceptions.py` con `DomainError` (base) e `InvalidAmountError`, usada en `Transaction.__post_init__` para rechazar montos ≤ 0. Las excepciones de dominio viven junto al dominio, no como `ValueError` genéricos, para que capas superiores las puedan atrapar y traducir específicamente.
+- Convención de idioma adoptada para todo el código: identificadores (clases, campos, miembros de Enum) en inglés; texto (valores de Enum, mensajes de excepción) en español.
+- Escrito por Nico, con guía paso a paso de Claude (sin que Claude escriba el código), como método de aprendizaje.

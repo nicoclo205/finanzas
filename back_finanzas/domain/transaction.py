@@ -1,0 +1,44 @@
+from enum import Enum
+from dataclasses import dataclass
+from datetime import date as dt
+from typing import Optional
+from domain.exceptions import InvalidAmountError
+
+class TransactionType(Enum):
+    INCOME = "ingreso"
+    EXPENSE = "gasto"
+
+class Method(Enum):
+    CASH = "efectivo"
+    TRANSFER = "transferencia"
+    DEBIT_CARD = "tarjeta de débito"
+    CREDIT_CARD = "tarjeta de crédito"
+
+class Category(Enum):
+    FOOD = "comida"
+    TRANSPORT = "transporte"
+    OUTINGS = "salidas"
+    LEISURE = "ocio"
+    JOB = "trabajo"
+    PARENTS = "padres"
+    OTHER = "otro"
+
+@dataclass
+class Transaction:
+    
+    amount: float
+    transaction_type: TransactionType #income/expense
+    method: Method  #payment by card, cash or transfer
+    date: dt
+    category: Category  #Category under which the transaction was made (food, transport, joy, etc...)
+    description: str
+    id: Optional[int] = None
+
+    def __post_init__(self):
+        if self.amount <= 0:
+            raise InvalidAmountError("El monto debe ser mayor a 0")
+
+    
+    
+
+

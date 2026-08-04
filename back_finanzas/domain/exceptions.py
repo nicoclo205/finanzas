@@ -3,3 +3,6 @@ class DomainError(Exception):
 
 class InvalidAmountError(DomainError):
     pass
+
+class InvalidDescriptionError(DomainError):
+    pass

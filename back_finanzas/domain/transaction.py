@@ -2,7 +2,7 @@ from enum import Enum
 from dataclasses import dataclass
 from datetime import date as dt
 from typing import Optional
-from domain.exceptions import InvalidAmountError
+from domain.exceptions import InvalidAmountError, InvalidDescriptionError
 
 class TransactionType(Enum):
     INCOME = "ingreso"
@@ -36,7 +36,13 @@ class Transaction:
 
     def __post_init__(self):
         if self.amount <= 0:
-            raise InvalidAmountError("El monto debe ser mayor a 0")
+            raise InvalidAmountError("El monto debe ser mayor a 0.")
+
+        if self.amount > 100000000:
+            raise InvalidAmountError("El monto no tiene una cifra realista.")
+
+        if len(self.description) > 100:
+            raise InvalidDescriptionError("La descripción tiene demasiados caracteres.")
 
     
     

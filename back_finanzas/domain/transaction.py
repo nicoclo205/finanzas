@@ -5,16 +5,25 @@ from typing import Optional
 from domain.exceptions import InvalidAmountError, InvalidDescriptionError
 
 class TransactionType(Enum):
+    """
+    Class for the transaction type posibilities.
+    """
     INCOME = "ingreso"
     EXPENSE = "gasto"
 
 class Method(Enum):
+    """
+    Class for the method of payment.
+    """
     CASH = "efectivo"
     TRANSFER = "transferencia"
     DEBIT_CARD = "tarjeta de débito"
     CREDIT_CARD = "tarjeta de crédito"
 
 class Category(Enum):
+    """
+    Class for the categories.
+    """
     FOOD = "comida"
     TRANSPORT = "transporte"
     OUTINGS = "salidas"
@@ -25,6 +34,10 @@ class Category(Enum):
 
 @dataclass
 class Transaction:
+
+    """
+    Model of bussiness that the system will perform.
+    """
     
     amount: float
     transaction_type: TransactionType #income/expense

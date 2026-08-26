@@ -9,7 +9,7 @@ class DatabaseSettings(BaseSettings):
     """
     Configures the connection to the real db. It searches the real env value for the connector
     """
-    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore")
 
     db_connector: str
 

@@ -27,3 +27,21 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Creada `back_finanzas/domain/exceptions.py` con `DomainError` (base) e `InvalidAmountError`, usada en `Transaction.__post_init__` para rechazar montos ≤ 0. Las excepciones de dominio viven junto al dominio, no como `ValueError` genéricos, para que capas superiores las puedan atrapar y traducir específicamente.
 - Convención de idioma adoptada para todo el código: identificadores (clases, campos, miembros de Enum) en inglés; texto (valores de Enum, mensajes de excepción) en español.
 - Escrito por Nico, con guía paso a paso de Claude (sin que Claude escriba el código), como método de aprendizaje.
+
+## 2026-08-04 — Más validación en `Transaction` y suite de tests
+
+- Ampliada la validación en `Transaction.__post_init__`: además de rechazar montos ≤ 0, ahora rechaza montos por encima de un límite realista (100,000,000) y descripciones de más de 100 caracteres.
+- Agregada `InvalidDescriptionError` en `domain/exceptions.py` para el nuevo caso de validación.
+- Creada la suite de tests `back_finanzas/tests/domain/test_transaction.py` (pytest): cubre creación válida, monto cero, monto negativo, monto sobre el límite y descripción demasiado larga.
+
+## 2026-08-05 — Docstrings de dominio y primer puerto de aplicación
+
+- Agregados docstrings a `Transaction`, `TransactionType`, `Method` y `Category` en `domain/transaction.py`, documentando el propósito de cada campo/Enum.
+- Definido el primer puerto de la capa de aplicación: `back_finanzas/application/ports/transaction_repository.py` con la interfaz abstracta `TransactionRepository` (método `save`), siguiendo el patrón hexagonal — la aplicación depende de esta interfaz, no de una implementación concreta.
+- Creada `InMemoryTransactionRepository` en `back_finanzas/tests/fakes/in_memory_transaction_repository.py`, implementación del puerto en memoria (lista + autoincremento de `id`) para poder probar casos de uso sin depender de Postgres todavía.
+
+## 2026-08-25 — Primer caso de uso de aplicación: `RegisterTransaction`
+
+- Agregado docstring a `TransactionRepository` (`application/ports/transaction_repository.py`) explicando su rol como contrato de persistencia.
+- Creado `back_finanzas/application/use_cases/register_transaction.py`: caso de uso `RegisterTransaction`, que recibe datos crudos, construye una `Transaction` (delegando la validación al dominio) y la persiste a través del puerto `TransactionRepository`.
+- Creada la suite `back_finanzas/tests/application/use_cases/test_register_transaction.py`, con dos tests: uno cubre el camino feliz (guarda y devuelve la transacción con `id` asignado), y otro el camino de error (con un monto inválido, la excepción `InvalidAmountError` del dominio sube sin que el repositorio llegue a guardar nada).

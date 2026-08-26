@@ -2,6 +2,13 @@ from abc import ABC, abstractmethod
 from domain.transaction import Transaction
 
 class TransactionRepository(ABC):
+    """
+    Port defining the persistence contract for transactions.
+
+    Concrete adapters (in-memory, Postgres, etc.) implement this
+    interface so the application layer never depends on a specific
+    storage technology.
+    """
 
     @abstractmethod
     def save(self, transaction: Transaction) -> Transaction:

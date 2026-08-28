@@ -16,4 +16,10 @@ class TransactionRepository(ABC):
         Persist a transaction and return it with its assigned id.                                         
         """
         ...
-    
+
+    @abstractmethod
+    def list_all(self) -> list[Transaction]:
+        """
+        Returns the list of the transactions done.
+        """
+        ...

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from application.ports.transaction_repository import TransactionRepository
-from domain.transaction import Transaction
+from domain.transaction import Transaction, TransactionType, Method, Category
 from infrastructure.db.models import TransactionModel
 
 class PostgresTransactionRepository(TransactionRepository):
@@ -25,3 +25,26 @@ class PostgresTransactionRepository(TransactionRepository):
 
         transaction.id = model.id
         return transaction
+
+    def list_all(self) -> list[Transaction]:
+
+        transactions = []
+        consults = self._session.query(TransactionModel).all()
+
+        for consult in consults:
+
+            transaction = Transaction(
+                amount=consult.amount,
+                transaction_type=TransactionType(consult.transaction_type),
+                method=Method(consult.method),
+                date=consult.date,
+                category=Category(consult.category),
+                description=consult.description,
+                id=consult.id
+            )
+
+            transactions.append(transaction)
+
+        return transactions
+        
+        

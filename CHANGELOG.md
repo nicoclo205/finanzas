@@ -72,3 +72,14 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Creada la suite `tests/application/use_cases/test_list_transaction.py`, con dos tests: repositorio vacío devuelve lista vacía, y repositorio con varias transacciones guardadas devuelve todas con sus ids correctamente asignados.
 - Agregado el endpoint `GET /transactions` en `infrastructure/api/routes.py`, protegido por la misma API key que `POST /transactions`, con `response_model=list[TransactionResponse]`. A diferencia del `POST`, no tiene `try/except` porque `ListTransactions` no puede lanzar `DomainError` (no recibe ni valida datos del usuario) — se evitó agregar manejo de errores para un escenario que hoy no puede ocurrir.
 - Probado end-to-end contra la Supabase real (sin key → `401`, key incorrecta → `401`, key correcta → `200` con la lista completa de transacciones guardadas).
+
+## 2026-08-27 — Fetch de una transacción por id: caso de uso `GetById` y endpoint `GET /transactions/{id}`
+
+- Agregado el método abstracto `get_by_id` al puerto `TransactionRepository`, devolviendo `Optional[Transaction]` — a diferencia de `save`/`list_all`, este método puede no encontrar nada, así que el tipo de retorno lo refleja explícitamente.
+- Implementado en `InMemoryTransactionRepository`: busca en la lista interna la transacción cuyo `.id` coincide (`next(..., None)`), en vez de tratar el `id` como índice de posición — el primer intento tenía ese bug (`self._transactions[id]`), corregido antes de mergear.
+- Implementado en `PostgresTransactionRepository` usando `self._session.get(TransactionModel, id)` — consulta directa por clave primaria, sin traer toda la tabla a memoria (el primer intento hacía `.query(...).all()` y buscaba en Python, ineficiente); devuelve `None` explícitamente antes de construir el `Transaction` de dominio si no hay match, evitando un `AttributeError` sobre `None`.
+- Creado el caso de uso `GetById` (`application/use_cases/get_by_id.py`), mismo patrón que los anteriores: delega en el puerto, sin construir ni validar nada.
+- Creada la suite `tests/application/use_cases/test_list_by_id.py`, con dos tests: transacción existente devuelve todos sus datos correctos, transacción inexistente devuelve `None`.
+- Agregado el endpoint `GET /transactions/{id}` en `routes.py`: a diferencia de los otros dos endpoints, no traduce una excepción del dominio sino un valor `None` — cuando `GetById.execute()` no encuentra la transacción, el endpoint lo traduce a `HTTPException(404)` explícitamente con un `if`, no con `try/except` (no hay ninguna excepción real que atrapar en ese flujo).
+- Probado end-to-end contra la Supabase real (id existente → `200` con los datos, id inexistente → `404`, sin key/key incorrecta → `401`).
+- Con esto queda completo el CRUD de lectura de `Transaction` (crear, listar todas, obtener una por id); quedan pendientes `PUT`/`PATCH` (editar) y `DELETE` para cerrar el CRUD completo.

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 from domain.transaction import Transaction
 
 class TransactionRepository(ABC):
@@ -21,5 +22,12 @@ class TransactionRepository(ABC):
     def list_all(self) -> list[Transaction]:
         """
         Returns the list of the transactions done.
+        """
+        ...
+
+    @abstractmethod
+    def get_by_id(self, id: int) -> Optional[Transaction]:
+        """
+        Return the transaction filtered by id.
         """
         ...

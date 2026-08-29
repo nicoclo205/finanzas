@@ -79,3 +79,21 @@ class PostgresTransactionRepository(TransactionRepository):
             )
 
         return transaction
+
+    def remove(self, id: int) -> bool:
+        """
+        Delete the transaction with the given id.
+
+        Returns:
+            True if the transaction was deleted, False if no
+            transaction with that id exists.
+        """
+        consult = self._session.get(TransactionModel, id)
+
+        if consult is None:
+            return False
+
+        self._session.delete(consult)
+        self._session.commit()
+
+        return True

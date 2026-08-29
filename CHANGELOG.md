@@ -83,3 +83,14 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Agregado el endpoint `GET /transactions/{id}` en `routes.py`: a diferencia de los otros dos endpoints, no traduce una excepción del dominio sino un valor `None` — cuando `GetById.execute()` no encuentra la transacción, el endpoint lo traduce a `HTTPException(404)` explícitamente con un `if`, no con `try/except` (no hay ninguna excepción real que atrapar en ese flujo).
 - Probado end-to-end contra la Supabase real (id existente → `200` con los datos, id inexistente → `404`, sin key/key incorrecta → `401`).
 - Con esto queda completo el CRUD de lectura de `Transaction` (crear, listar todas, obtener una por id); quedan pendientes `PUT`/`PATCH` (editar) y `DELETE` para cerrar el CRUD completo.
+
+## 2026-08-28 — Eliminar transacción: caso de uso `RemoveTransaction` y endpoint `DELETE /transactions/{id}`
+
+- Agregado el método abstracto `remove(self, id: int) -> bool` al puerto `TransactionRepository` — devuelve `True` si se borró algo, `False` si no existía, en vez de lanzar una excepción, siguiendo el mismo criterio de `get_by_id` (que devuelve `None` en vez de lanzar).
+- Implementado en `InMemoryTransactionRepository`: busca la transacción por `id` con el mismo patrón que `get_by_id` y, si existe, la remueve de la lista interna.
+- Implementado en `PostgresTransactionRepository` usando `session.get` + `session.delete` + `commit`, mismo estilo de búsqueda que `get_by_id`.
+- Creado el caso de uso `RemoveTransaction` (`application/use_cases/remove_transaction.py`), mismo patrón simple que `GetById`/`ListTransactions`: delega en el puerto sin lógica propia.
+- Creada la suite `tests/application/use_cases/test_remove_transaction.py`, escrita antes de implementar el adaptador Postgres (a diferencia de las piezas anteriores) porque los tests del caso de uso dependen solo del fake, no de Postgres. Cubre transacción existente (devuelve `True`, y `list_all()` queda vacío) y transacción inexistente (devuelve `False`).
+- Agregado el endpoint `DELETE /transactions/{id}` en `routes.py`, protegido por API key, sin `response_model` y con `status_code=204` (sin cuerpo de respuesta, convención estándar para `DELETE`) — traduce el `False` del caso de uso a `HTTPException(404)`, igual que hace `GET /transactions/{id}` con `None`.
+- Renombrado el endpoint `get_by_id` a `get_transaction_by_id` en `routes.py` para evitar confusión con los nombres de los demás endpoints de la ruta.
+- Con esto queda completo el CRUD de `Transaction` salvo editar (`PUT`/`PATCH`), la única pieza pendiente para cerrar la fase 2 del roadmap.

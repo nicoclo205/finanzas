@@ -26,9 +26,25 @@ class InMemoryTransactionRepository(TransactionRepository):
         Simulates a get option where the list of transactions is fetched
         """
         return list(self._transactions)
+    
 
     def get_by_id(self, id: int) -> Optional[Transaction]:
         """
         Simulates a get option where an specific transaction is fetched by its id
         """
         return next((t for t in self._transactions if t.id == id), None)
+    
+
+    def remove(self, id: int) -> bool:
+        """
+        Simulates a transaction being deleted using the id
+        """
+
+        transaction = next((t for t in self._transactions if t.id == id), None)
+
+        if transaction is None:
+            return False
+
+        self._transactions.remove(transaction)
+        return True
+    

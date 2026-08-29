@@ -6,6 +6,7 @@ from domain.exceptions import DomainError
 from application.use_cases.register_transaction import RegisterTransaction
 from application.use_cases.list_transactions import ListTransactions
 from application.use_cases.get_by_id import GetById
+from application.use_cases.remove_transaction import RemoveTransaction
 
 from infrastructure.api.auth import verify_api_key
 from infrastructure.db.session import get_db
@@ -72,7 +73,7 @@ def get_transactions(db: Session = Depends(get_db)):
     response_model=TransactionResponse,
     dependencies=[Depends(verify_api_key)]
 )
-def get_by_id(id: int, db: Session = Depends(get_db)):
+def get_transaction_by_id(id: int, db: Session = Depends(get_db)):
     """
     Fetch a single transaction by its id.
 
@@ -91,3 +92,17 @@ def get_by_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Transacción no encontrada.")
 
     return transaction
+
+@router.delete(
+    "/transactions/{id}",
+    dependencies=[Depends(verify_api_key)],
+    status_code=204
+)
+def remove(id: int, db: Session = Depends(get_db)) -> None:
+    repository = PostgresTransactionRepository(session=db)
+    use_case = RemoveTransaction(repository=repository)
+
+    deleted = use_case.execute(id=id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada.")

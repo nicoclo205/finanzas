@@ -31,3 +31,10 @@ class TransactionRepository(ABC):
         Return the transaction filtered by id.
         """
         ...
+
+    @abstractmethod
+    def remove(self, id: int) -> bool:
+        """
+        Deletes a transaction selected by an id.
+        """
+        ...

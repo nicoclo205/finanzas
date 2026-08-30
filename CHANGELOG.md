@@ -105,3 +105,19 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Agregado el endpoint `PUT /transactions/{id}` en `routes.py`, reutilizando `TransactionCreate` como body (mismos campos obligatorios que necesita `UpdateTransaction`, sin necesidad de un schema nuevo): traduce `DomainError` a `HTTPException(422)` igual que `POST /transactions`, y `None` a `HTTPException(404)` igual que `GET /transactions/{id}`/`DELETE /transactions/{id}` — es el primer endpoint que combina ambos tipos de traducción de error.
 - Escrito por Nico con guía paso a paso de Claude; Claude escribió directamente el bloque `try/except DomainError` del endpoint a pedido explícito de Nico, y el `raise HTTPException(404, ...)` correspondiente.
 - Con esto queda completo el CRUD de `Transaction` (crear, listar, obtener por id, editar, borrar), cerrando la fase 2 del roadmap. Pendiente probarlo end-to-end contra la Supabase real.
+- Probado por Nico end-to-end contra la Supabase real: `PUT /transactions/{id}` funciona correctamente.
+
+## 2026-08-29 — Decisión de alcance: Fase 2 cerrada solo con `Transaction`, `Deuda` diferida
+
+- Definido que el balance de la app se calcula como la suma de todas las `Transaction` (ingresos suman, gastos restan), arrancando en 0 y fluctuando en positivo/negativo — esto es todo lo que se necesita del backend para ese comportamiento, así que la entidad `Deuda` (mencionada en la arquitectura junto a `Transacción` y `Meta`) no es necesaria para cerrar la Fase 2.
+- Decisión: `Deuda` se difiere, no se elimina del roadmap. Se retoma más adelante si surge necesidad real de trackear una obligación pendiente (a quién se le debe, si está pagada) como algo distinto de un gasto puntual — por ejemplo al construir el dashboard de la Fase 4, si ese caso de uso lo pide.
+- `CLAUDE.md` actualizado: Fase 2 del roadmap redefinida como "ingresos y gastos por medio de pago (entidad `Transaction`)" y marcada completa; Fase 4 ya no menciona "deudas próximas" en su alcance actual.
+- Con la Fase 2 cerrada, el siguiente paso del roadmap es la Fase 3: frontend Expo (pantallas de registro y listado de transacciones, conectadas al backend).
+
+## 2026-08-29 — Diseño del modelo `Deuda` (sin implementar)
+
+- Diseñada la entidad `Debt` (dominio, a implementar en un checkpoint futuro): `creditor` (texto libre), `amount`, `paid_amount` (default 0), `method`, `description`, `date`, y `due_date: Optional[date]` — necesario porque hay deudas sin fecha definida (ej. a un amigo) y otras con fecha fija recurrente (ej. tarjeta de crédito que vence el 29).
+- Decisión: el estado (`pendiente`/`parcial`/`pagada`) es una propiedad calculada a partir de `amount` vs. `paid_amount`, no un campo guardado — mismo criterio de evitar estado redundante que ya se usa en el resto del dominio.
+- Decisión: pagar una deuda debe generar además una `Transaction` de gasto vinculada, para que el pago se refleje también en el balance — esto implica un futuro caso de uso `RegisterDebtPayment` que coordina `DebtRepository` y `TransactionRepository`.
+- Discutida y explícitamente diferida la automatización de "todo pago con tarjeta de crédito suma automáticamente a la deuda de esa tarjeta" y la recurrencia de cargos mensuales (ciclos de tarjeta, gastos fijos tipo gimnasio) — Nico la marcó como importante para el futuro, pero se prefiere resolverla manual primero porque las reglas de negocio (cuándo cierra un ciclo, qué transacciones cuentan) todavía no están validadas con uso real.
+- No se escribió código en esta sesión — es diseño de dominio para implementar más adelante; el trabajo inmediato sigue siendo la Fase 3 (frontend de `Transaction`).

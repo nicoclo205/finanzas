@@ -30,11 +30,15 @@ El frontend vive en `front_finanzas/`.
 ## Roadmap (fases de ejecución)
 
 1. Setup y arquitectura base del backend (hexagonal, conexión real a Postgres, API key)
-2. CRUD financiero: ingresos, gastos, deudas por medio de pago
+2. CRUD financiero: ingresos y gastos por medio de pago (entidad `Transaction`) — **completo**
 3. Frontend Expo: pantallas de registro y listados, conectadas al backend
-4. Dashboard (balance, gasto por categoría, deudas próximas) y Metas
+4. Dashboard (balance, gasto por categoría) y Metas
 5. Empaquetado y despliegue: backend en producción, build Android, app de escritorio con Electron
 6. (Futuro, fuera del alcance actual) Adaptador MCP para asesoría financiera con IA
+
+**Decisión de alcance (2026-08-29):** la entidad `Deuda` se difiere — el balance calculado a partir de `Transaction` (ingreso/gasto) alcanza para el caso de uso actual (saldo que fluctúa en positivo/negativo desde 0). `Deuda` se retoma más adelante si surge necesidad real de trackear una obligación pendiente como algo distinto de un gasto puntual (no se descarta, solo se saca de la Fase 2).
+
+**Diseño ya acordado para `Deuda` (implementación pendiente, no antes de la Fase 3):** entidad con `creditor` (texto libre, ej. "tarjeta de crédito", nombre de un amigo), `amount`, `paid_amount` (default 0), `method`, `description`, `date`, y `due_date` opcional (`None` para deudas sin fecha, como las de amigos). El estado (`pendiente`/`parcial`/`pagada`) se calcula a partir de `amount` vs. `paid_amount`, no se guarda como campo aparte. Pagar una deuda genera además una `Transaction` de gasto vinculada, para que el pago también se refleje en el balance. Explícitamente fuera de este diseño por ahora: recurrencia automática (ciclos mensuales de tarjeta, cargos recurrentes tipo gimnasio) y auto-acumulación de gastos con tarjeta de crédito hacia una `Deuda` — Nico marcó esta última como importante para automatizar más adelante (cada pago con `tarjeta_credito` debería sumar automáticamente a la deuda de esa tarjeta), pero se implementa manual primero para no resolver reglas de negocio (cuándo cierra el ciclo, qué cuenta) que todavía no están validadas con uso real.
 
 Explícitamente fuera de alcance por ahora: comandos por voz, NFC, módulo de tiempo/actividades/anti-procrastinación. No se descartan, se retoman en fases posteriores una vez el núcleo financiero esté sólido.
 

@@ -38,3 +38,11 @@ class TransactionRepository(ABC):
         Deletes a transaction selected by an id.
         """
         ...
+
+    @abstractmethod
+    def update(self, id: int, transaction: Transaction) -> Optional[Transaction]:
+        """
+        Updates a transaction selected by an id, returning the updated
+        transaction, or None if no transaction with that id exists.
+        """
+        ...

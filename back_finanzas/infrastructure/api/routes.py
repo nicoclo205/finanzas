@@ -7,6 +7,7 @@ from application.use_cases.register_transaction import RegisterTransaction
 from application.use_cases.list_transactions import ListTransactions
 from application.use_cases.get_by_id import GetById
 from application.use_cases.remove_transaction import RemoveTransaction
+from application.use_cases.update_transaction import UpdateTransaction
 
 from infrastructure.api.auth import verify_api_key
 from infrastructure.db.session import get_db
@@ -98,7 +99,7 @@ def get_transaction_by_id(id: int, db: Session = Depends(get_db)):
     dependencies=[Depends(verify_api_key)],
     status_code=204
 )
-def remove(id: int, db: Session = Depends(get_db)) -> None:
+def remove(id: int, db: Session = Depends(get_db)):
     repository = PostgresTransactionRepository(session=db)
     use_case = RemoveTransaction(repository=repository)
 
@@ -106,3 +107,30 @@ def remove(id: int, db: Session = Depends(get_db)) -> None:
 
     if not deleted:
         raise HTTPException(status_code=404, detail="Transacción no encontrada.")
+
+
+@router.put(
+    "/transactions/{id}",
+    response_model=TransactionResponse,
+    dependencies=[Depends(verify_api_key)]
+)
+def update(id: int, data: TransactionCreate, db: Session = Depends(get_db)):
+    repository = PostgresTransactionRepository(session=db)
+    use_case = UpdateTransaction(repository=repository)
+
+    try:
+        updated = use_case.execute(id=id,
+                                   amount=data.amount,
+                                   transaction_type=data.transaction_type,
+                                   method=data.method,
+                                   date=data.date,
+                                   category=data.category,
+                                   description=data.description
+                                )
+    except DomainError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada.")
+
+    return updated

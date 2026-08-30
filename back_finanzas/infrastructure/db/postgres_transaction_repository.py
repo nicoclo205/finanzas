@@ -67,6 +67,7 @@ class PostgresTransactionRepository(TransactionRepository):
 
         if consult is None:
             return None
+        
 
         transaction = Transaction(
                 amount=consult.amount,
@@ -97,3 +98,33 @@ class PostgresTransactionRepository(TransactionRepository):
         self._session.commit()
 
         return True
+
+    def update(self, id: int, transaction: Transaction) -> Optional[Transaction]:
+
+        consult = self._session.get(TransactionModel, id)
+
+        if consult is None:
+            return None
+
+        consult.amount = transaction.amount
+        consult.transaction_type = transaction.transaction_type.value
+        consult.method = transaction.method.value
+        consult.date = transaction.date
+        consult.category = transaction.category.value
+        consult.description = transaction.description
+
+        self._session.commit()
+        self._session.refresh(consult)
+
+        transaction_updated = Transaction(
+            amount=consult.amount,
+            transaction_type=TransactionType(consult.transaction_type),
+            method=Method(consult.method),
+            date=consult.date,
+            category=Category(consult.category),
+            description=consult.description,
+            id=consult.id
+        )
+
+        return transaction_updated
+    

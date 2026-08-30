@@ -37,7 +37,7 @@ class InMemoryTransactionRepository(TransactionRepository):
 
     def remove(self, id: int) -> bool:
         """
-        Simulates a transaction being deleted using the id
+        Simulates a transaction being deleted using an id
         """
 
         transaction = next((t for t in self._transactions if t.id == id), None)
@@ -47,4 +47,22 @@ class InMemoryTransactionRepository(TransactionRepository):
 
         self._transactions.remove(transaction)
         return True
-    
+
+    def update(self, id: int, transaction: Transaction) -> Optional[Transaction]:
+        """
+        Simulates a transaction being updated using an id
+        """
+
+        transaction_selected = next((t for t in self._transactions if t.id == id), None)
+
+        if transaction_selected is None:
+            return None
+
+        transaction_selected.amount = transaction.amount
+        transaction_selected.transaction_type = transaction.transaction_type
+        transaction_selected.method = transaction.method
+        transaction_selected.date = transaction.date
+        transaction_selected.category = transaction.category
+        transaction_selected.description = transaction.description
+
+        return transaction_selected

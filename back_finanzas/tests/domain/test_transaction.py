@@ -4,6 +4,7 @@ from domain.exceptions import InvalidAmountError, InvalidDescriptionError
 from datetime import date as dt
 
 def test_valid_transaction_is_created():
+    """A Transaction built with valid data keeps all its fields as given."""
 
     transaction_type = TransactionType.EXPENSE
     method = Method.DEBIT_CARD
@@ -30,6 +31,7 @@ def test_valid_transaction_is_created():
 
 
 def test_zero_amount_raises_invalid_amount_error():
+    """Amount 0 is rejected — amount must be strictly positive."""
     with pytest.raises(InvalidAmountError):
         Transaction(
             amount=0,
@@ -42,6 +44,7 @@ def test_zero_amount_raises_invalid_amount_error():
 
 
 def test_negative_amount_raises_invalid_amount_error():
+    """A negative amount is rejected."""
     with pytest.raises(InvalidAmountError):
         Transaction(
             amount=-100,
@@ -54,6 +57,7 @@ def test_negative_amount_raises_invalid_amount_error():
 
 
 def test_amount_over_limit_raises_invalid_amount_error():
+    """An amount above the realistic limit (100,000,000) is rejected."""
     with pytest.raises(InvalidAmountError):
         Transaction(
             amount=100_000_001,
@@ -66,6 +70,7 @@ def test_amount_over_limit_raises_invalid_amount_error():
 
 
 def test_description_too_long_raises_invalid_description_error():
+    """A description longer than 100 characters is rejected."""
     with pytest.raises(InvalidDescriptionError):
         Transaction(
             amount=100,

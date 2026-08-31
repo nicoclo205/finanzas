@@ -4,6 +4,7 @@ from domain.transaction import Transaction, TransactionType, Method, Category
 from datetime import date as dt
 
 def test_no_transaction_in_list():
+    """Listing an empty repository returns an empty list."""
 
     repository = InMemoryTransactionRepository()
     use_case = ListTransactions(repository=repository)
@@ -14,6 +15,7 @@ def test_no_transaction_in_list():
 
 
 def test_fetch_transactions_list():
+    """Listing a repository with several transactions returns all of them with their assigned ids."""
 
     repository = InMemoryTransactionRepository()
 

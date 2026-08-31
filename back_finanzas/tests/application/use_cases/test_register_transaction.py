@@ -6,6 +6,7 @@ from tests.fakes.in_memory_transaction_repository import InMemoryTransactionRepo
 from datetime import date as dt
 
 def test_execute_saves_and_returns_transaction_with_id():
+    """Registering a valid transaction persists it and returns it with an assigned id."""
 
     transaction_type = TransactionType.EXPENSE
     method = Method.DEBIT_CARD
@@ -37,6 +38,7 @@ def test_execute_saves_and_returns_transaction_with_id():
 
 
 def test_execute_does_not_save_when_transaction_is_invalid():
+    """Registering with an invalid amount raises and leaves the repository untouched."""
 
     transaction_type = TransactionType.EXPENSE
     method = Method.DEBIT_CARD

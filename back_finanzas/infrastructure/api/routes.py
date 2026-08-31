@@ -100,6 +100,12 @@ def get_transaction_by_id(id: int, db: Session = Depends(get_db)):
     status_code=204
 )
 def remove(id: int, db: Session = Depends(get_db)):
+    """
+    Delete a single transaction by its id.
+
+    Raises:
+        HTTPException: 404 if no transaction with that id exists.
+    """
     repository = PostgresTransactionRepository(session=db)
     use_case = RemoveTransaction(repository=repository)
 
@@ -115,6 +121,16 @@ def remove(id: int, db: Session = Depends(get_db)):
     dependencies=[Depends(verify_api_key)]
 )
 def update(id: int, data: TransactionCreate, db: Session = Depends(get_db)):
+    """
+    Replace a transaction's data by its id.
+
+    Raises:
+        HTTPException: 422 if the new data violates a domain rule,
+            404 if no transaction with that id exists.
+
+    Returns:
+        The updated transaction.
+    """
     repository = PostgresTransactionRepository(session=db)
     use_case = UpdateTransaction(repository=repository)
 

@@ -1,3 +1,8 @@
+"""
+Entry point of the FastAPI application: builds the app, wires CORS
+(needed for the Expo web frontend), and mounts the transactions router.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

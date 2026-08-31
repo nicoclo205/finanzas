@@ -4,8 +4,15 @@ from application.ports.transaction_repository import TransactionRepository
 from domain.transaction import Transaction
 
 class InMemoryTransactionRepository(TransactionRepository):
+    """
+    In-memory fake implementation of TransactionRepository, used to test
+    use cases without depending on Postgres.
+    """
 
     def __init__(self):
+        """
+        Starts with an empty list of transactions and id autoincrement at 1.
+        """
         self._transactions = []
         self._next_id = 1
 

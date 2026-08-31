@@ -14,6 +14,11 @@ class PostgresTransactionRepository(TransactionRepository):
     """
 
     def __init__(self, session: Session) -> None:
+        """
+        Args:
+            session: SQLAlchemy session used to run every query, injected
+                rather than created here.
+        """
         self._session = session
 
     def save(self, transaction: Transaction) -> Transaction:
@@ -100,7 +105,13 @@ class PostgresTransactionRepository(TransactionRepository):
         return True
 
     def update(self, id: int, transaction: Transaction) -> Optional[Transaction]:
+        """
+        Overwrite the fields of the transaction with the given id.
 
+        Returns:
+            The updated transaction, or None if no transaction with
+            that id exists.
+        """
         consult = self._session.get(TransactionModel, id)
 
         if consult is None:

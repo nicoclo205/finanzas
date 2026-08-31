@@ -4,6 +4,7 @@ from tests.fakes.in_memory_transaction_repository import InMemoryTransactionRepo
 from application.use_cases.update_transaction import UpdateTransaction
 
 def test_update_transaction():
+        """Updating an existing transaction overwrites its fields and returns the new data."""
 
         transaction = Transaction(
         amount=10000,
@@ -40,6 +41,7 @@ def test_update_transaction():
 
 
 def test_update_transaction_not_found():
+        """Updating an id that doesn't exist returns None."""
 
         repository = InMemoryTransactionRepository()
         use_case = UpdateTransaction(repository=repository)

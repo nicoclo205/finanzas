@@ -4,6 +4,7 @@ from tests.fakes.in_memory_transaction_repository import InMemoryTransactionRepo
 from datetime import date as dt
 
 def test_remove_transaction():
+    """Removing an existing transaction returns True and empties the repository."""
 
     repository = InMemoryTransactionRepository()
     use_case = RemoveTransaction(repository=repository)
@@ -26,6 +27,7 @@ def test_remove_transaction():
 
 
 def test_remove_transaction_not_found():
+    """Removing an id that doesn't exist returns False."""
 
     repository = InMemoryTransactionRepository()
     use_case = RemoveTransaction(repository=repository)

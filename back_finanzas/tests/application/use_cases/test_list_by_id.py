@@ -4,6 +4,7 @@ from tests.fakes.in_memory_transaction_repository import InMemoryTransactionRepo
 from datetime import date as dt
 
 def test_get_transaction_by_id_is_None():
+    """Fetching by an id that doesn't exist returns None."""
 
     repository = InMemoryTransactionRepository()
     use_case = GetById(repository=repository)
@@ -13,6 +14,7 @@ def test_get_transaction_by_id_is_None():
     assert result is None
 
 def test_get_transaction_by_id():
+    """Fetching an existing transaction by id returns all its data correctly."""
 
     repository = InMemoryTransactionRepository()
     use_case = GetById(repository=repository)

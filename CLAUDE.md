@@ -31,16 +31,27 @@ El frontend vive en `front_finanzas/`.
 
 1. Setup y arquitectura base del backend (hexagonal, conexión real a Postgres, API key)
 2. CRUD financiero: ingresos y gastos por medio de pago (entidad `Transaction`) — **completo**
-3. Frontend Expo: pantallas de registro y listados, conectadas al backend
+3. Frontend Expo: pantallas de registro y listados, conectadas al backend — **completo**
 4. Dashboard (balance, gasto por categoría) y Metas
 5. Empaquetado y despliegue: backend en producción, build Android, app de escritorio con Electron
 6. (Futuro, fuera del alcance actual) Adaptador MCP para asesoría financiera con IA
+7. (Futuro, después de terminado el proyecto) Estilos visuales alternativos seleccionables (el actual — "Esmeralda profundo" — es serio/formal; se sumarían otros con identidad propia, ej. uno tipo videojuego/informal, uno pixelado), y resumen financiero mensual con opción de exportar (CSV/PDF)
 
 **Decisión de alcance (2026-08-29):** la entidad `Deuda` se difiere — el balance calculado a partir de `Transaction` (ingreso/gasto) alcanza para el caso de uso actual (saldo que fluctúa en positivo/negativo desde 0). `Deuda` se retoma más adelante si surge necesidad real de trackear una obligación pendiente como algo distinto de un gasto puntual (no se descarta, solo se saca de la Fase 2).
 
 **Diseño ya acordado para `Deuda` (implementación pendiente, no antes de la Fase 3):** entidad con `creditor` (texto libre, ej. "tarjeta de crédito", nombre de un amigo), `amount`, `paid_amount` (default 0), `method`, `description`, `date`, y `due_date` opcional (`None` para deudas sin fecha, como las de amigos). El estado (`pendiente`/`parcial`/`pagada`) se calcula a partir de `amount` vs. `paid_amount`, no se guarda como campo aparte. Pagar una deuda genera además una `Transaction` de gasto vinculada, para que el pago también se refleje en el balance. Explícitamente fuera de este diseño por ahora: recurrencia automática (ciclos mensuales de tarjeta, cargos recurrentes tipo gimnasio) y auto-acumulación de gastos con tarjeta de crédito hacia una `Deuda` — Nico marcó esta última como importante para automatizar más adelante (cada pago con `tarjeta_credito` debería sumar automáticamente a la deuda de esa tarjeta), pero se implementa manual primero para no resolver reglas de negocio (cuándo cierra el ciclo, qué cuenta) que todavía no están validadas con uso real.
 
 Explícitamente fuera de alcance por ahora: comandos por voz, NFC, módulo de tiempo/actividades/anti-procrastinación. No se descartan, se retoman en fases posteriores una vez el núcleo financiero esté sólido.
+
+## Sistema de diseño (frontend)
+
+Establecido en la Fase 3 (diseñado en Claude Design, `front_finanzas/theme/`). Las pantallas futuras (Fase 4 en adelante) siguen estas mismas decisiones en vez de definir unas nuevas:
+
+- **Paleta "Esmeralda profundo"** (`theme/colors.ts`), con modo oscuro y claro. Colores semánticos fijos (no cambian entre modos): `ingreso` `#6FA98A`, `gasto` `#B0563E`.
+- **Tipografía en tres roles** (`theme/fonts.ts`): Fraunces (display, títulos), Manrope (UI/cuerpo), IBM Plex Mono (montos y datos numéricos/tabulares — detalle distintivo de la app, todo monto se ve "de libro contable").
+- **Motivo de firma "línea de balance"** (`components/BalanceLine.tsx`): un trazo que ondula cruzando un eje en cero. Reemplaza cualquier spinner circular (variante `loading`) y aparece como eco bajo el saldo real en el Listado (variante `chart`).
+- **Un solo sistema responsive**, no layouts separados por plataforma: `theme/layout.ts` define el breakpoint (820px) que decide sidebar colapsable (desktop) vs. barra de navegación inferior (mobile) en `components/AppShell.tsx`.
+- **Animaciones del diseño original**: entrada de pantalla `RiseIn` (fade + translateY, usada en Registrar/Editar y Ajustes) y el diálogo de confirmación `ConfirmDialog` (fade + translateY + scale).
 
 ## Cómo trabajar en este proyecto (importante)
 

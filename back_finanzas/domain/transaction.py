@@ -32,6 +32,8 @@ class Category(Enum):
     PARENTS = "padres"
     OTHER = "otro"
 
+    SAVINGS = "ahorro"
+
 @dataclass
 class Transaction:
 
@@ -46,6 +48,7 @@ class Transaction:
     category: Category  #Category under which the transaction was made (food, transport, joy, etc...)
     description: str
     id: Optional[int] = None
+    objective_id: Optional[int] = None
 
     def __post_init__(self):
         if self.amount <= 0:

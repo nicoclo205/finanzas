@@ -91,6 +91,7 @@ def test_execute_does_not_save_when_amount_is_invalid():
 
     assert transaction_repository._transactions == []
 
-    unchanged_objective = objective_repository.get_by_id(objective_id=objective.objective_id)
+    unchanged_objective = objective_repository.get_by_id(objective_id=objective.objective_id) # type: ignore
+    assert unchanged_objective is not None
     assert unchanged_objective.saved_amount == 0
 

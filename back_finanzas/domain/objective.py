@@ -15,7 +15,7 @@ class Objective:
     created_date: dt
     target_date: Optional[dt]  #optional deadline
     saved_amount: float = 0  #accumulated so far; starts at 0
-    id: Optional[int] = None  #assigned on persist, not on creation in memory
+    objective_id: Optional[int] = None  #assigned on persist, not on creation in memory
 
     def __post_init__(self):
 

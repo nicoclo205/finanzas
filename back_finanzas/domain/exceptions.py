@@ -25,3 +25,9 @@ class InvalidNameError(DomainError):
     Raised when a name is empty/blank or too long.
     """
     pass
+
+class ObjectiveNotFoundError(DomainError):
+    """
+    Raised when no Objective exists for the given id.
+    """
+    pass

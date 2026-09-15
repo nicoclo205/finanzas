@@ -19,7 +19,7 @@ class GetObjectiveById:
         """
         self._repository = repository
 
-    def execute(self, id: int) -> Optional[Objective]:
+    def execute(self, objective_id: int) -> Optional[Objective]:
         """
         Fetch the objective with the given id.
 
@@ -27,4 +27,4 @@ class GetObjectiveById:
             The matching Objective, or None if no objective with
             that id exists.
         """
-        return self._repository.get_by_id(id=id)
+        return self._repository.get_by_id(objective_id=objective_id)

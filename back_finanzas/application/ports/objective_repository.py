@@ -25,21 +25,21 @@ class ObjectiveRepository(ABC):
         ...
 
     @abstractmethod
-    def get_by_id(self, id: int) -> Optional[Objective]:
+    def get_by_id(self, objective_id: int) -> Optional[Objective]:
         """
         Return the objective filtered by id.
         """
         ...
 
     @abstractmethod
-    def remove(self, id: int) -> bool:
+    def remove(self, objective_id: int) -> bool:
         """
         Deletes an objective selected by an id.
         """
         ...
 
     @abstractmethod
-    def update(self, id: int, objective: Objective) -> Optional[Objective]:
+    def update(self, objective_id: int, objective: Objective) -> Optional[Objective]:
         """
         Updates an objective selected by an id, returning the updated
         objective, or None if no objective with that id exists.

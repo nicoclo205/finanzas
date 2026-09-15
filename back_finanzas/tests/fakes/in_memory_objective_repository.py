@@ -19,7 +19,7 @@ class InMemoryObjectiveRepository(ObjectiveRepository):
         """
         Simulates a bd with a list where the objective objects are created with an increasing id
         """
-        objective.id = self._next_id
+        objective.objective_id = self._next_id
         self._next_id += 1
 
         self._objectives.append(objective)
@@ -32,17 +32,17 @@ class InMemoryObjectiveRepository(ObjectiveRepository):
         """
         return list(self._objectives)
 
-    def get_by_id(self, id: int) -> Optional[Objective]:
+    def get_by_id(self, objective_id: int) -> Optional[Objective]:
         """
         Simulates a get option where an specific objective is fetched by its id
         """
-        return next((o for o in self._objectives if o.id == id), None)
+        return next((o for o in self._objectives if o.objective_id == objective_id), None)
 
-    def remove(self, id: int) -> bool:
+    def remove(self, objective_id: int) -> bool:
         """
         Simulates an objective being deleted using an id
         """
-        consult = next((o for o in self._objectives if o.id == id), None)
+        consult = next((o for o in self._objectives if o.objective_id == objective_id), None)
 
         if consult is None:
             return False
@@ -50,11 +50,11 @@ class InMemoryObjectiveRepository(ObjectiveRepository):
         self._objectives.remove(consult)
         return True
 
-    def update(self, id: int, objective: Objective) -> Optional[Objective]:
+    def update(self, objective_id: int, objective: Objective) -> Optional[Objective]:
         """
         Simulates an objective being updated using an id
         """
-        consult = next((o for o in self._objectives if o.id == id), None)
+        consult = next((o for o in self._objectives if o.objective_id == objective_id), None)
 
         if consult is None:
             return None

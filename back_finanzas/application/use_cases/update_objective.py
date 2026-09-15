@@ -19,7 +19,7 @@ class UpdateObjective:
         """
         self._repository = repository
 
-    def execute(self, id: int, name, target_amount, created_date, target_date, saved_amount) -> Optional[Objective]:
+    def execute(self, objective_id: int, name, target_amount, created_date, target_date, saved_amount) -> Optional[Objective]:
         """
         Build an Objective from raw data and persist it in place of the
         objective with the given id.
@@ -36,4 +36,4 @@ class UpdateObjective:
             saved_amount=saved_amount,
         )
 
-        return self._repository.update(id=id, objective=objective)
+        return self._repository.update(objective_id=objective_id, objective=objective)

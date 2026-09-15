@@ -17,7 +17,7 @@ class RemoveObjective:
         """
         self._repository = repository
 
-    def execute(self, id: int) -> bool:
+    def execute(self, objective_id: int) -> bool:
         """
         Delete the objective with the given id.
 
@@ -25,4 +25,4 @@ class RemoveObjective:
             True if an objective was deleted, False if no objective
             with that id existed.
         """
-        return self._repository.remove(id=id)
+        return self._repository.remove(objective_id=objective_id)

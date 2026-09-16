@@ -1,17 +1,20 @@
 import pytest
 from domain.objective import Objective
 from application.use_cases.assign_to_objective import AssignToObjective
-from domain.transaction import Transaction, TransactionType, Category, Method
+from domain.transaction import TransactionType, Category, Method
 from domain.exceptions import ObjectiveNotFoundError, InvalidAmountError
 from tests.fakes.in_memory_objective_repository import InMemoryObjectiveRepository
 from tests.fakes.in_memory_transaction_repository import InMemoryTransactionRepository
 from datetime import date as dt
 
-def test_valid_objective():
+def test_valid_objective_assignation():
 
     transaction_repository = InMemoryTransactionRepository()
     objective_repository = InMemoryObjectiveRepository()
-    use_case = AssignToObjective(objective_repository=objective_repository, transaction_repository=transaction_repository)
+    use_case = AssignToObjective(
+        objective_repository=objective_repository, 
+        transaction_repository=transaction_repository
+        )
 
     objective = Objective(
         name="Ahorros",

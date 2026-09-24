@@ -1,4 +1,5 @@
 from datetime import date as dt
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -35,3 +36,36 @@ class TransactionResponse(TransactionBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+
+class ObjectiveBase(BaseModel):
+
+    name: str
+    target_amount: Optional[float] = None
+    created_date: dt
+    target_date: Optional[dt] = None
+
+class ObjectiveCreate(ObjectiveBase):
+
+    pass
+
+class ObjectiveResponse(ObjectiveBase):
+
+    model_config = ConfigDict(from_attributes=True)
+
+    objective_id: int
+    saved_amount: float
+
+
+class ObjectiveMovementRequest(BaseModel):
+    """
+    Request body shared by POST /objectives/{id}/assign and
+    /objectives/{id}/withdraw — no transaction_type/category, those are
+    fixed internally by AssignToObjective/WithdrawFromObjective, and no
+    objective_id, that comes from the URL path.
+    """
+
+    amount: float
+    method: Method
+    date: dt
+    description: str

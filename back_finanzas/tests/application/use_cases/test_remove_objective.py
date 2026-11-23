@@ -22,7 +22,7 @@ def test_remove_objective_without_funds():
     use_case = RemoveObjective(repository=repository)
     objective = repository.save(_objective(saved_amount=0))
 
-    result = use_case.execute(objective_id=objective.objective_id)
+    result = use_case.execute(objective_id=objective.objective_id) # type: ignore
 
     assert result is True
     assert repository.list_all() == []
@@ -41,7 +41,7 @@ def test_remove_objective_with_funds_is_rejected():
     objective = repository.save(_objective(saved_amount=500000))
 
     with pytest.raises(ObjectiveHasFundsError):
-        use_case.execute(objective_id=objective.objective_id)
+        use_case.execute(objective_id=objective.objective_id) # type: ignore
 
     # La meta sigue existiendo, intacta.
     assert len(repository.list_all()) == 1

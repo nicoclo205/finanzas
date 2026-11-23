@@ -31,3 +31,10 @@ class ObjectiveNotFoundError(DomainError):
     Raised when no Objective exists for the given id.
     """
     pass
+
+class ObjectiveHasFundsError(DomainError):
+    """
+    Raised when trying to delete an Objective that still holds saved money.
+    The funds must be withdrawn back to the balance first.
+    """
+    pass

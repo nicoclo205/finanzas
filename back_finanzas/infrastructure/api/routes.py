@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from domain.exceptions import DomainError, ObjectiveNotFoundError
+from domain.exceptions import DomainError, ObjectiveNotFoundError, ObjectiveHasFundsError
 
 from application.use_cases.register_transaction import RegisterTransaction
 from application.use_cases.list_transactions import ListTransactions
@@ -229,7 +229,10 @@ def remove_objective(id: int, db: Session = Depends(get_db)):
     repository = PostgresObjectiveRepository(session=db)
     use_case = RemoveObjective(repository=repository)
 
-    deleted = use_case.execute(objective_id=id)
+    try:
+        deleted = use_case.execute(objective_id=id)
+    except ObjectiveHasFundsError as error:
+        raise HTTPException(status_code=409, detail=str(error))
 
     if deleted is False:
         raise HTTPException(status_code=404, detail="Meta no encontrada.")

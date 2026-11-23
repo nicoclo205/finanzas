@@ -76,6 +76,9 @@ class PostgresObjectiveRepository(ObjectiveRepository):
         if consult is None:
             return False
 
+        self._session.query(TransactionModel).filter(
+            TransactionModel.objective_id == objective_id
+        ).update({TransactionModel.objective_id: None})
         self._session.delete(consult)
         self._session.commit()
 

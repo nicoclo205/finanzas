@@ -299,3 +299,20 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Fase 4 marcada como completa en `CLAUDE.md`: backend (entidad, casos de uso, Postgres, API) y frontend (lista, crear, editar, borrar, apartar/retirar) verificados con uso real. Pendiente menor, no bloqueante: tests automatizados de `PostgresObjectiveRepository` y de las rutas de `Objective`.
 - Documentada en `CLAUDE.md` la regla de borrado de `Objective` (409 con plata; la UI la devuelve al saldo antes de borrar; las transacciones vinculadas quedan con `objective_id = NULL`).
 - Fase 5 (Dashboard) pasa a "en progreso".
+
+## 2026-11-23 — Fase 5: Dashboard, pieza 1 (saldo por medio de pago e ingresos/gastos del mes)
+
+- Decisiones acordadas con Nico: período = **mes actual con selector** (flechas para meses anteriores); los movimientos de **ahorro** (apartar/retirar de metas) quedan **fuera** de gastos/ingresos del mes y se muestran aparte como "Apartado neto en metas" (apartar plata no es gastarla). El saldo sí los incluye. Todo se calcula en el frontend con `GET /transactions` — sin backend nuevo. La skill `frontend-design` que pide este documento no existe en esta sesión; se partió del sistema "Esmeralda profundo" existente.
+- `lib/dashboard.ts`: funciones puras (`computeSummary`, `shiftMonth`, `monthLabel`, `currentMonthKey`, `METHOD_ORDER`) — saldo total, saldo por medio de pago, ingresos, gastos, apartado neto y cantidad de movimientos del mes.
+- `app/resumen.tsx` (ruta `/resumen`, entrada "Resumen" ◈ en la navegación): tarjeta de saldo con `BalanceLine` y desglose por medio de pago (verde/rojo según signo), y tarjeta de ingresos vs. gastos del mes con barra proporcional y línea de apartado neto. Piezas siguientes: gasto por categoría y resumen de metas; luego decidir si Resumen pasa a ser la pantalla inicial. Verificado con `tsc --noEmit`; falta revisión visual.
+
+## 2026-11-23 — Fase 5: Dashboard, piezas 2 y 3 (gasto por categoría y resumen de metas)
+
+- Pieza 2: tarjeta "Gasto por categoría" en `/resumen` — barras horizontales de mayor a menor con monto y porcentaje del gasto del mes, excluyendo la categoría "ahorro". Nuevo `categoryBreakdown` en `lib/dashboard.ts` y componente reutilizable `components/AnimatedBar.tsx` (barra fina que crece desde cero y se desliza al cambiar de valor).
+- Pieza 3: tarjeta "Metas" con el total apartado y hasta 3 metas destacadas (reusa `ObjectiveCard`, tocables hacia su detalle) y botón hacia Metas; estado vacío con acceso a crear la primera. Nuevo `featuredObjectives`: primero metas con monto objetivo en camino (de más a menos avanzada), luego apartados abiertos con más plata y al final las ya logradas. La pantalla carga transacciones y metas en paralelo (`Promise.all`).
+- Con esto la Fase 5 queda completa en `CLAUDE.md`. Pendiente de decisión: si Resumen pasa a ser la pantalla inicial (hoy sigue siéndolo el Listado). Verificado con `tsc --noEmit`; falta revisión visual de las piezas 2 y 3.
+
+## 2026-11-23 — Resumen en dos columnas (desktop)
+
+- A pedido de Nico, `/resumen` se divide en **dos columnas** en pantallas anchas (>= 820px, mismo breakpoint del resto de la app): izquierda "Saldo" + "Ingresos y gastos del mes"; derecha "Gasto por categoría" + "Metas". El ancho máximo del contenido sube de 680 a 1080px en desktop; en móvil se mantiene una sola columna. Verificado con `tsc --noEmit`; falta revisión visual.
+- Ajuste: "Ingresos y gastos del mes" pasó a la columna derecha (arriba de "Gasto por categoría" y "Metas"); la izquierda queda solo con "Saldo". En móvil el orden de lectura no cambia.

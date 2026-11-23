@@ -10,3 +10,7 @@ export function formatDateLabel(iso: string): string {
   const d = new Date(`${iso}T12:00:00`);
   return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
 }
+
+export function formatDateWithYear(iso: string): string {
+  return `${formatDateLabel(iso)} ${iso.slice(0, 4)}`;
+}

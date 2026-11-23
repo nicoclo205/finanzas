@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
 import { useTheme } from "../theme/ThemeContext";
 import { fonts } from "../theme/fonts";
@@ -12,34 +12,61 @@ type Props = {
   text: string;
   ctaLabel?: string;
   onClose: () => void;
+  /** Si se pasa, aparece un segundo botón "cancelar" bajo el principal (confirmaciones destructivas). */
+  cancelLabel?: string;
+  onCancel?: () => void;
 };
 
+const ENTER_MS = 260;
+const EXIT_MS = 170;
+
 /**
- * Diálogo de confirmación "om-pop" del diseño original: fondo semitransparente
- * + tarjeta que entra con fade + translateY + scale, 220ms.
+ * Diálogo de confirmación "om-pop": fondo semitransparente que aparece con fade
+ * y tarjeta que entra con translateY + scale. Al cerrarse también anima la salida
+ * (en vez de desaparecer de golpe), conservando el último contenido mostrado
+ * mientras dura el fade-out.
  */
-export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose }: Props) {
+export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose, cancelLabel, onCancel }: Props) {
   const { palette, semantic } = useTheme();
   const progress = useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = useState(false);
+  const last = useRef({ kind, title, text, ctaLabel, cancelLabel, hasCancel: !!onCancel });
+
+  if (visible) last.current = { kind, title, text, ctaLabel, cancelLabel, hasCancel: !!onCancel };
 
   useEffect(() => {
     if (visible) {
+      setMounted(true);
       progress.setValue(0);
-      Animated.timing(progress, {
+      const enter = Animated.timing(progress, {
         toValue: 1,
-        duration: 220,
+        duration: ENTER_MS,
         easing: Easing.bezier(0.2, 0.8, 0.2, 1),
         useNativeDriver: true,
-      }).start();
+      });
+      enter.start();
+      return () => enter.stop();
     }
+    const exit = Animated.timing(progress, {
+      toValue: 0,
+      duration: EXIT_MS,
+      easing: Easing.bezier(0.4, 0, 1, 1),
+      useNativeDriver: true,
+    });
+    exit.start(({ finished }) => {
+      if (finished) setMounted(false);
+    });
+    return () => exit.stop();
   }, [visible]);
 
-  if (!visible) return null;
+  if (!visible && !mounted) return null;
 
-  const color = kind === "error" ? semantic.gasto : semantic.ingreso;
+  const shown = last.current;
+  const color = shown.kind === "error" ? semantic.gasto : semantic.ingreso;
 
   return (
-    <View
+    <Animated.View
+      pointerEvents={visible ? "auto" : "none"}
       style={{
         position: "absolute",
         top: 0,
@@ -51,6 +78,7 @@ export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose }:
         alignItems: "center",
         justifyContent: "center",
         padding: 26,
+        opacity: progress,
       }}
     >
       <Animated.View
@@ -65,10 +93,9 @@ export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose }:
           paddingHorizontal: 26,
           alignItems: "center",
           gap: 13,
-          opacity: progress,
           transform: [
-            { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) },
-            { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] }) },
+            { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) },
+            { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) },
           ],
         }}
       >
@@ -83,10 +110,12 @@ export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose }:
             justifyContent: "center",
           }}
         >
-          <Text style={{ color, fontSize: 26, fontFamily: fonts.bodyBold }}>{kind === "error" ? "!" : "✓"}</Text>
+          <Text style={{ color, fontSize: 26, fontFamily: fonts.bodyBold }}>{shown.kind === "error" ? "!" : "✓"}</Text>
         </View>
-        <Text style={{ fontFamily: fonts.displayRegular, fontSize: 23, color, textAlign: "center" }}>{title}</Text>
-        <Text style={{ fontSize: 14, lineHeight: 22, color: palette.dim, textAlign: "center" }}>{text}</Text>
+        <Text style={{ fontFamily: fonts.displayRegular, fontSize: 23, color, textAlign: "center" }}>
+          {shown.title}
+        </Text>
+        <Text style={{ fontSize: 14, lineHeight: 22, color: palette.dim, textAlign: "center" }}>{shown.text}</Text>
         <Pressable
           onPress={onClose}
           style={{
@@ -100,10 +129,20 @@ export function ConfirmDialog({ visible, kind, title, text, ctaLabel, onClose }:
           }}
         >
           <Text style={{ color, fontFamily: fonts.bodySemiBold, fontSize: 14 }}>
-            {ctaLabel ?? (kind === "error" ? "Volver" : "Listo")}
+            {shown.ctaLabel ?? (shown.kind === "error" ? "Volver" : "Listo")}
           </Text>
         </Pressable>
+        {shown.hasCancel && (
+          <Pressable
+            onPress={onCancel}
+            style={{ width: "100%", paddingVertical: 12, alignItems: "center" }}
+          >
+            <Text style={{ color: palette.dim, fontFamily: fonts.bodySemiBold, fontSize: 14 }}>
+              {shown.cancelLabel ?? "Cancelar"}
+            </Text>
+          </Pressable>
+        )}
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }

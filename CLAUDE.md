@@ -33,7 +33,7 @@ El frontend vive en `front_finanzas/`.
 2. CRUD financiero: ingresos y gastos por medio de pago (entidad `Transaction`) — **completo**
 3. Frontend Expo: pantallas de registro y listados, conectadas al backend — **completo**
 4. Metas: entidad `Objective` (metas de ahorro con objetivo y apartados de ahorro abiertos, ej. cuenta de ahorros) — **completa** (backend + frontend; pendiente menor: tests automatizados de `PostgresObjectiveRepository` y de las rutas)
-5. Dashboard (balance, gasto por categoría) — **completa** (pantalla Resumen; pendiente decidir si pasa a ser la pantalla inicial)
+5. Dashboard (balance, gasto por categoría) — **completa** (pantalla Resumen, que es la pantalla inicial)
 6. Empaquetado y despliegue: backend en producción, build Android, app de escritorio con Electron
 7. (Futuro, fuera del alcance actual) Adaptador MCP para asesoría financiera con IA
 8. (Futuro, después de terminado el proyecto) Estilos visuales alternativos seleccionables (el actual — "Esmeralda profundo" — es serio/formal; se sumarían otros con identidad propia, ej. uno tipo videojuego/informal, uno pixelado), y resumen financiero mensual con opción de exportar (CSV/PDF)

@@ -7,8 +7,8 @@ import { fonts } from "../theme/fonts";
 type NavItem = { key: string; label: string; glyph: string; route: string };
 
 const ITEMS: NavItem[] = [
-  { key: "list", label: "Listado", glyph: "≡", route: "/" },
-  { key: "summary", label: "Resumen", glyph: "◈", route: "/resumen" },
+  { key: "summary", label: "Resumen", glyph: "◈", route: "/" },
+  { key: "list", label: "Listado", glyph: "≡", route: "/listado" },
   { key: "goals", label: "Metas", glyph: "◎", route: "/metas" },
   { key: "form", label: "Registrar", glyph: "+", route: "/registrar" },
   { key: "settings", label: "Ajustes", glyph: "✳", route: "/ajustes" },

@@ -5,21 +5,25 @@ import { useTheme } from "../theme/ThemeContext";
 import { DESKTOP_BREAKPOINT } from "../theme/layout";
 import { fonts } from "../theme/fonts";
 import { useSettings } from "../lib/SettingsContext";
-import { listTransactions, Transaction, ApiError } from "../lib/api";
-import { formatAmount, formatDateLabel } from "../lib/format";
+import { listTransactions, listObjectives, Transaction, Objective, ApiError } from "../lib/api";
+import { formatAmount } from "../lib/format";
+import {
+  categoryBreakdown,
+  computeSummary,
+  currentMonthKey,
+  featuredObjectives,
+  METHOD_ORDER,
+  monthLabel,
+  shiftMonth,
+} from "../lib/dashboard";
 import { BalanceLine } from "../components/BalanceLine";
+import { RiseIn } from "../components/RiseIn";
+import { AnimatedBar } from "../components/AnimatedBar";
+import { ObjectiveCard } from "../components/ObjectiveCard";
 
-type Row = {
-  id: number;
-  showDate: boolean;
-  dateLabel: string;
-  description: string;
-  meta: string;
-  color: string;
-  amountText: string;
-};
+const signedText = (n: number) => `${n < 0 ? "− " : ""}$ ${formatAmount(n)}`;
 
-export default function ListadoScreen() {
+export default function ResumenScreen() {
   const { palette, semantic } = useTheme();
   const { width } = useWindowDimensions();
   const desktop = width >= DESKTOP_BREAKPOINT;
@@ -27,20 +31,20 @@ export default function ListadoScreen() {
   const settings = useSettings();
 
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [objectives, setObjectives] = useState<Objective[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [month, setMonth] = useState(currentMonthKey());
 
   const load = useCallback(async () => {
     if (!settings.isConfigured) return;
-    setLoading(true);
     setError(null);
     try {
-      const data = await listTransactions({ baseUrl: settings.url, apiKey: settings.apiKey });
-      setTransactions(data);
+      const creds = { baseUrl: settings.url, apiKey: settings.apiKey };
+      const [txs, objs] = await Promise.all([listTransactions(creds), listObjectives(creds)]);
+      setTransactions(txs);
+      setObjectives(objs);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No se pudo conectar con el backend.");
-    } finally {
-      setLoading(false);
     }
   }, [settings.isConfigured, settings.url, settings.apiKey]);
 
@@ -50,275 +54,304 @@ export default function ListadoScreen() {
     }, [load])
   );
 
-  const sorted = (transactions ?? [])
-    .slice()
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
-  const balance = sorted.reduce((acc, t) => acc + (t.transaction_type === "ingreso" ? t.amount : -t.amount), 0);
-  const totalIn = sorted.filter((t) => t.transaction_type === "ingreso").reduce((acc, t) => acc + t.amount, 0);
-  const totalOut = sorted.filter((t) => t.transaction_type === "gasto").reduce((acc, t) => acc + t.amount, 0);
-  const balanceColor = balance < 0 ? semantic.gasto : semantic.ingreso;
+  const isCurrentMonth = month === currentMonthKey();
+  const summary = computeSummary(transactions ?? [], month);
+  const balanceColor = summary.balance < 0 ? semantic.gasto : semantic.ingreso;
+  const categories = categoryBreakdown(transactions ?? [], month);
+  const featured = featuredObjectives(objectives);
+  const totalSaved = objectives.reduce((acc, o) => acc + o.saved_amount, 0);
+  const flowTotal = summary.income + summary.expense;
+  const incomeShare = flowTotal > 0 ? summary.income / flowTotal : 0.5;
 
-  let lastDate: string | null = null;
-  const rows: Row[] = sorted.map((t) => {
-    const showDate = t.date !== lastDate;
-    lastDate = t.date;
-    const isIncome = t.transaction_type === "ingreso";
-    return {
-      id: t.id,
-      showDate,
-      dateLabel: formatDateLabel(t.date),
-      description: t.description || (isIncome ? "Ingreso" : "Gasto"),
-      meta: `${t.category} · ${t.method}`,
-      color: isIncome ? semantic.ingreso : semantic.gasto,
-      amountText: `${isIncome ? "+" : "−"} $ ${formatAmount(t.amount)}`,
-    };
-  });
+  const labelStyle = {
+    fontFamily: fonts.monoRegular,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: "uppercase" as const,
+    color: palette.dim,
+  };
 
-  const hero = (
-    <View
-      style={{
-        flex: desktop ? 1 : undefined,
-        alignItems: "center",
-        justifyContent: desktop ? "space-between" : "flex-start",
-        gap: desktop ? 0 : 30,
-        paddingVertical: desktop ? 36 : 32,
-        paddingHorizontal: 20,
-      }}
-    >
-      <View style={{ alignItems: "center", gap: 2 }}>
-        <Text
-          style={{
-            fontFamily: fonts.monoRegular,
-            fontSize: 11,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: palette.dim,
-          }}
-        >
-          Tu saldo
-        </Text>
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-          <Text style={{ fontFamily: fonts.monoMedium, fontSize: 24, color: palette.dim }}>$</Text>
-          <Text
-            style={{
-              fontFamily: fonts.monoMedium,
-              fontSize: desktop ? 52 : 46,
-              letterSpacing: -1,
-              color: balanceColor,
-            }}
-          >
-            {(balance < 0 ? "− " : "") + formatAmount(balance)}
-          </Text>
-        </View>
-        <BalanceLine variant="chart" color={balanceColor} lineColor={palette.line} width={190} height={34} />
-        <View style={{ flexDirection: "row", gap: 20, marginTop: 6 }}>
-          <Text style={{ fontSize: 13, color: palette.dim }}>
-            Ingresos{" "}
-            <Text style={{ fontFamily: fonts.monoMedium, color: semantic.ingreso }}>$ {formatAmount(totalIn)}</Text>
-          </Text>
-          <Text style={{ fontSize: 13, color: palette.dim }}>
-            Gastos <Text style={{ fontFamily: fonts.monoMedium, color: semantic.gasto }}>$ {formatAmount(totalOut)}</Text>
-          </Text>
-        </View>
-      </View>
-
-      <View style={{ flexDirection: "row", gap: 16 }}>
-        <ActionButton
-          glyph="+"
-          label="Ingreso"
-          color={semantic.ingreso}
-          onPress={() => router.push({ pathname: "/registrar", params: { tipo: "ingreso" } })}
-        />
-        <ActionButton glyph="−" label="Gasto" color={semantic.gasto} onPress={() => router.push("/registrar")} />
-        <ActionButton glyph="↻" label="Recargar" color={palette.accent} onPress={load} />
-        <ActionButton glyph="✳" label="Ajustes" color={palette.accent} onPress={() => router.push("/ajustes")} />
-      </View>
+  const body = !settings.isConfigured ? (
+    <Notice
+      title="Todavía no conectaste el backend"
+      text="Ve a Ajustes y guarda la URL y la API key para ver tu resumen."
+      actionLabel="Ir a Ajustes"
+      onPress={() => router.push("/ajustes")}
+    />
+  ) : error ? (
+    <Notice title="No se pudo cargar" text={error} actionLabel="Reintentar" onPress={load} />
+  ) : transactions === null ? (
+    <View style={{ paddingVertical: 60, alignItems: "center", gap: 14 }}>
+      <BalanceLine variant="loading" color={palette.accent} lineColor={palette.line} width={200} height={40} />
+      <Text style={{ fontSize: 13, color: palette.dim }}>Calculando tu resumen…</Text>
     </View>
-  );
-
-  const movements = (
-    <View style={{ flex: 1, minHeight: 0 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          paddingHorizontal: 20,
-          paddingTop: 18,
-        }}
-      >
-        <Text style={{ fontFamily: fonts.displayRegular, fontSize: 21, color: palette.text }}>Movimientos</Text>
-        <Text
-          style={{
-            fontFamily: fonts.monoRegular,
-            fontSize: 11,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            color: palette.dim,
-          }}
-        >
-          {sorted.length} {sorted.length === 1 ? "movimiento" : "movimientos"}
-        </Text>
-      </View>
-
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30, gap: 6 }}>
-        {!settings.isConfigured ? (
-          <NoticeBlock
-            title="Todavía no conectaste el backend"
-            text="Ve a Ajustes y guarda la URL y la API key para poder ver tus movimientos."
-            actionLabel="Ir a Ajustes"
-            onPress={() => router.push("/ajustes")}
-          />
-        ) : loading && transactions === null ? (
-          <View style={{ paddingVertical: 40, alignItems: "center", gap: 14 }}>
-            <BalanceLine variant="loading" color={palette.accent} lineColor={palette.line} width={200} height={40} />
-            <Text style={{ fontSize: 13, color: palette.dim }}>Trayendo tus movimientos…</Text>
-          </View>
-        ) : error ? (
-          <NoticeBlock title="No se pudo cargar" text={error} actionLabel="Reintentar" onPress={load} />
-        ) : rows.length === 0 ? (
-          <NoticeBlock
-            title="Todavía no hay nada aquí"
-            text="Anota tu primer movimiento y el saldo empieza a moverse desde cero."
-            actionLabel="Registrar el primero"
-            onPress={() => router.push("/registrar")}
-          />
-        ) : (
-          rows.map((r) => (
-            <View key={r.id}>
-              {r.showDate && (
-                <Text
-                  style={{
-                    fontFamily: fonts.monoRegular,
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                    color: palette.dim,
-                    paddingTop: 18,
-                    paddingBottom: 8,
-                    paddingHorizontal: 4,
-                  }}
-                >
-                  {r.dateLabel}
-                </Text>
-              )}
-              <Pressable
-                onPress={() => router.push(`/movimiento/${r.id}`)}
+  ) : (
+    <View style={{ flexDirection: desktop ? "row" : "column", alignItems: desktop ? "flex-start" : "stretch", gap: 18 }}>
+      <View style={{ flex: desktop ? 1 : undefined, gap: 18 }}>
+      <RiseIn>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 20, padding: 22, gap: 18 }}>
+          <View style={{ alignItems: "center", gap: 2 }}>
+            <Text style={labelStyle}>Tu saldo</Text>
+            <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
+              <Text style={{ fontFamily: fonts.monoMedium, fontSize: 24, color: palette.dim }}>$</Text>
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 14,
-                  backgroundColor: palette.bg,
-                  borderRadius: 14,
-                  padding: 15,
+                  fontFamily: fonts.monoMedium,
+                  fontSize: desktop ? 52 : 44,
+                  letterSpacing: -1,
+                  color: balanceColor,
                 }}
               >
-                <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: r.color }} />
-                <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
-                  <Text numberOfLines={1} style={{ fontFamily: fonts.bodySemiBold, fontSize: 15, color: palette.text }}>
-                    {r.description}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: palette.dim }}>{r.meta}</Text>
-                </View>
-                <Text style={{ fontFamily: fonts.monoMedium, fontSize: 16, color: r.color }}>{r.amountText}</Text>
-              </Pressable>
+                {(summary.balance < 0 ? "− " : "") + formatAmount(summary.balance)}
+              </Text>
             </View>
-          ))
-        )}
-      </ScrollView>
-    </View>
-  );
+            <BalanceLine variant="chart" color={balanceColor} lineColor={palette.line} width={190} height={34} />
+          </View>
 
-  if (desktop) {
-    return (
-      <View style={{ flex: 1, flexDirection: "row", padding: 26, gap: 22 }}>
-        <View style={{ flex: 1 }}>{hero}</View>
-        <View
-          style={{
-            flex: 1.15,
-            backgroundColor: palette.surface,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: palette.line,
-            overflow: "hidden",
-          }}
-        >
-          {movements}
+          <View style={{ gap: 2 }}>
+            <Text style={[labelStyle, { marginBottom: 6 }]}>Por medio de pago</Text>
+            {METHOD_ORDER.map((m) => {
+              const value = summary.byMethod[m];
+              return (
+                <View
+                  key={m}
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    paddingVertical: 11,
+                    borderTopWidth: 1,
+                    borderColor: palette.line,
+                  }}
+                >
+                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: palette.text }}>{m}</Text>
+                  <Text
+                    style={{
+                      fontFamily: fonts.monoMedium,
+                      fontSize: 15,
+                      color: value < 0 ? semantic.gasto : value > 0 ? semantic.ingreso : palette.dim,
+                    }}
+                  >
+                    {signedText(value)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
         </View>
-      </View>
-    );
-  }
+      </RiseIn>
 
-  return (
-    <View style={{ flex: 1 }}>
-      {hero}
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: palette.surface,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          borderWidth: 1,
-          borderColor: palette.line,
-          overflow: "hidden",
-        }}
-      >
-        {movements}
+      </View>
+      <View style={{ flex: desktop ? 1 : undefined, gap: 18 }}>
+      <RiseIn delay={80}>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 20, padding: 22, gap: 16 }}>
+          <Text style={labelStyle}>Ingresos y gastos · {monthLabel(month)}</Text>
+
+          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 16 }}>
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12, color: palette.dim }}>Ingresos</Text>
+              <Text style={{ fontFamily: fonts.monoMedium, fontSize: 22, color: semantic.ingreso }}>
+                $ {formatAmount(summary.income)}
+              </Text>
+            </View>
+            <View style={{ gap: 4, alignItems: "flex-end" }}>
+              <Text style={{ fontSize: 12, color: palette.dim }}>Gastos</Text>
+              <Text style={{ fontFamily: fonts.monoMedium, fontSize: 22, color: semantic.gasto }}>
+                $ {formatAmount(summary.expense)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ flexDirection: "row", height: 6, borderRadius: 999, overflow: "hidden", gap: 3 }}>
+            <View style={{ flex: Math.max(incomeShare, 0.001), backgroundColor: semantic.ingreso, borderRadius: 999 }} />
+            <View
+              style={{ flex: Math.max(1 - incomeShare, 0.001), backgroundColor: semantic.gasto, borderRadius: 999 }}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              paddingTop: 12,
+              borderTopWidth: 1,
+              borderColor: palette.line,
+            }}
+          >
+            <Text style={{ fontSize: 13, color: palette.dim }}>Apartado neto en metas</Text>
+            <Text style={{ fontFamily: fonts.monoMedium, fontSize: 15, color: palette.accent }}>
+              {signedText(summary.savingsNet)}
+            </Text>
+          </View>
+
+          {summary.monthCount === 0 && (
+            <Text style={{ fontSize: 13, color: palette.dim }}>No hay movimientos en este mes.</Text>
+          )}
+        </View>
+      </RiseIn>
+      <RiseIn delay={160}>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 20, padding: 22, gap: 16 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+            <Text style={labelStyle}>Gasto por categoría · {monthLabel(month)}</Text>
+            <Text style={{ fontFamily: fonts.monoRegular, fontSize: 11, color: palette.dim }}>
+              $ {formatAmount(summary.expense)}
+            </Text>
+          </View>
+
+          {categories.length === 0 ? (
+            <Text style={{ fontSize: 13, color: palette.dim }}>Sin gastos registrados en este mes.</Text>
+          ) : (
+            categories.map((c, i) => (
+              <View key={c.category} style={{ gap: 8 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontFamily: fonts.bodyMedium,
+                      fontSize: 14,
+                      color: palette.text,
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {c.category}
+                  </Text>
+                  <Text style={{ fontFamily: fonts.monoRegular, fontSize: 12, color: palette.dim }}>
+                    {Math.round(c.share * 100)}%
+                  </Text>
+                  <Text style={{ fontFamily: fonts.monoMedium, fontSize: 15, color: semantic.gasto, minWidth: 96, textAlign: "right" }}>
+                    $ {formatAmount(c.total)}
+                  </Text>
+                </View>
+                <AnimatedBar value={c.share} color={semantic.gasto} delay={200 + i * 70} />
+              </View>
+            ))
+          )}
+        </View>
+      </RiseIn>
+
+      <RiseIn delay={240}>
+        <View style={{ backgroundColor: palette.surface, borderRadius: 20, padding: 22, gap: 16 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+            <Text style={labelStyle}>Metas</Text>
+            <Text style={{ fontFamily: fonts.monoMedium, fontSize: 15, color: palette.accent }}>
+              $ {formatAmount(totalSaved)} apartados
+            </Text>
+          </View>
+
+          {featured.length === 0 ? (
+            <View style={{ gap: 12, alignItems: "flex-start" }}>
+              <Text style={{ fontSize: 13, color: palette.dim }}>
+                Todavía no tienes metas. Un apartado de ahorro aparece aquí con su avance.
+              </Text>
+              <LinkButton label="Crear una meta" onPress={() => router.push("/meta/nueva")} />
+            </View>
+          ) : (
+            <>
+              {featured.map((o) => (
+                <ObjectiveCard key={o.objective_id} objective={o} onPress={() => router.push(`/meta/${o.objective_id}`)} />
+              ))}
+              <LinkButton
+                label={objectives.length > featured.length ? `Ver las ${objectives.length} metas` : "Ver metas"}
+                onPress={() => router.push("/metas")}
+              />
+            </>
+          )}
+        </View>
+      </RiseIn>
       </View>
     </View>
   );
+
+  return (
+    <ScrollView contentContainerStyle={{ padding: 26, alignItems: "center" }}>
+      <View style={{ width: "100%", maxWidth: desktop ? 1080 : 680, gap: 22 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: fonts.monoRegular,
+                fontSize: 11,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: palette.accent,
+              }}
+            >
+              Resumen
+            </Text>
+            <Text
+              style={{ fontFamily: fonts.displayRegular, fontWeight: "400", fontSize: 32, color: palette.text, marginTop: 8 }}
+            >
+              Tu mes
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <MonthButton glyph="‹" onPress={() => setMonth((m) => shiftMonth(m, -1))} />
+            <Text
+              style={{
+                fontFamily: fonts.bodySemiBold,
+                fontSize: 14,
+                color: palette.text,
+                minWidth: 128,
+                textAlign: "center",
+                textTransform: "capitalize",
+              }}
+            >
+              {monthLabel(month)}
+            </Text>
+            <MonthButton glyph="›" disabled={isCurrentMonth} onPress={() => setMonth((m) => shiftMonth(m, 1))} />
+          </View>
+        </View>
+
+        {body}
+      </View>
+    </ScrollView>
+  );
 }
 
-function ActionButton({
-  glyph,
-  label,
-  color,
-  onPress,
-}: {
-  glyph: string;
-  label: string;
-  color: string;
-  onPress: () => void;
-}) {
+function LinkButton({ label, onPress }: { label: string; onPress: () => void }) {
   const { palette } = useTheme();
-  const [hovered, setHovered] = useState(false);
   return (
-    <View style={{ alignItems: "center", gap: 7 }}>
-      <Pressable
-        onPress={onPress}
-        onHoverIn={() => setHovered(true)}
-        onHoverOut={() => setHovered(false)}
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: palette.line,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: hovered ? palette.surface2 : "transparent",
-          transform: [{ translateY: hovered ? -2 : 0 }],
-        }}
-      >
-        <Text
-          style={{
-            color,
-            fontFamily: fonts.monoRegular,
-            fontSize: 18,
-            lineHeight: 18,
-            textAlign: "center",
-            marginTop: glyph === "+" ? 4 : 0,
-          }}
-        >
-          {glyph}
-        </Text>
-      </Pressable>
-      <Text style={{ fontSize: 11, color: palette.dim }}>{label}</Text>
-    </View>
+    <Pressable
+      onPress={onPress}
+      style={{
+        borderWidth: 1,
+        borderColor: palette.line,
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        alignSelf: "flex-start",
+      }}
+    >
+      <Text style={{ color: palette.accent, fontFamily: fonts.bodySemiBold, fontSize: 13 }}>{label}</Text>
+    </Pressable>
   );
 }
 
-function NoticeBlock({
+function MonthButton({ glyph, onPress, disabled }: { glyph: string; onPress: () => void; disabled?: boolean }) {
+  const { palette } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: palette.line,
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: disabled ? 0.35 : 1,
+      }}
+    >
+      <Text style={{ color: palette.accent, fontFamily: fonts.monoRegular, fontSize: 18, lineHeight: 20 }}>{glyph}</Text>
+    </Pressable>
+  );
+}
+
+function Notice({
   title,
   text,
   actionLabel,

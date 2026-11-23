@@ -69,7 +69,7 @@ export function TransactionForm({ transaction, initialType }: Props) {
 
   const goList = () => {
     setDialog(null);
-    router.replace("/");
+    router.replace("/listado");
   };
 
   const handleSubmit = async () => {
@@ -293,7 +293,7 @@ export function TransactionForm({ transaction, initialType }: Props) {
             <Text style={{ color: palette.accent, fontFamily: fonts.bodySemiBold, fontSize: 14 }}>{submitLabel}</Text>
           </Pressable>
           <Pressable
-            onPress={() => router.push("/")}
+            onPress={() => router.push("/listado")}
             style={{
               borderWidth: 1,
               borderColor: palette.line,

@@ -316,3 +316,7 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 
 - A pedido de Nico, `/resumen` se divide en **dos columnas** en pantallas anchas (>= 820px, mismo breakpoint del resto de la app): izquierda "Saldo" + "Ingresos y gastos del mes"; derecha "Gasto por categoría" + "Metas". El ancho máximo del contenido sube de 680 a 1080px en desktop; en móvil se mantiene una sola columna. Verificado con `tsc --noEmit`; falta revisión visual.
 - Ajuste: "Ingresos y gastos del mes" pasó a la columna derecha (arriba de "Gasto por categoría" y "Metas"); la izquierda queda solo con "Saldo". En móvil el orden de lectura no cambia.
+
+## 2026-11-23 — Resumen pasa a ser la pantalla inicial
+
+- `app/index.tsx` (ruta `/`) ahora es el Resumen; el Listado se movió a `app/listado.tsx` (ruta `/listado`). Menú reordenado: Resumen, Listado, Metas, Registrar, Ajustes. Los flujos que volvían al listado tras registrar/editar/borrar un movimiento (`TransactionForm`) ahora apuntan a `/listado`. Verificado con `tsc --noEmit`.

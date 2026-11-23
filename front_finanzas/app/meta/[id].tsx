@@ -153,21 +153,39 @@ export default function MetaDetalleScreen() {
   return (
     <ScrollView contentContainerStyle={{ padding: 26, alignItems: "center" }}>
       <RiseIn style={{ width: "100%", maxWidth: 620, gap: 26 }}>
-        <View>
-          <Text
-            style={{
-              fontFamily: fonts.monoRegular,
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: palette.accent,
-            }}
-          >
-            Meta #{Number.isFinite(objectiveId) ? objectiveId : "?"}
-          </Text>
-          <Text style={{ fontFamily: fonts.displayRegular, fontWeight: "400", fontSize: 32, color: palette.text, marginTop: 8 }}>
-            Mueve plata
-          </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: fonts.monoRegular,
+                fontSize: 11,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                color: palette.accent,
+              }}
+            >
+              Meta #{Number.isFinite(objectiveId) ? objectiveId : "?"}
+            </Text>
+            <Text style={{ fontFamily: fonts.displayRegular, fontWeight: "400", fontSize: 32, color: palette.text, marginTop: 8 }}>
+              Mueve plata
+            </Text>
+          </View>
+          {objective && (
+            <Pressable
+              onPress={() => router.push(`/meta/editar/${objectiveId}`)}
+              style={{
+                borderWidth: 1,
+                borderColor: palette.accent,
+                borderRadius: 12,
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Text style={{ color: palette.accent, fontFamily: fonts.bodySemiBold, fontSize: 13 }}>
+                Editar o borrar
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {!settings.isConfigured ? (
@@ -294,18 +312,6 @@ export default function MetaDetalleScreen() {
                 <Text style={{ color: modeColor, fontFamily: fonts.bodySemiBold, fontSize: 14 }}>
                   {submitting ? "Guardando…" : mode === "assign" ? "Apartar plata" : "Retirar plata"}
                 </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => router.push(`/meta/editar/${objectiveId}`)}
-                style={{
-                  borderWidth: 1,
-                  borderColor: palette.line,
-                  borderRadius: 12,
-                  paddingVertical: 16,
-                  paddingHorizontal: 22,
-                }}
-              >
-                <Text style={{ color: palette.accent, fontFamily: fonts.bodySemiBold, fontSize: 14 }}>Editar</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push("/metas")}

@@ -289,3 +289,13 @@ Historial de avances y decisiones del proyecto. Cada entrada: fecha, qué se hiz
 - Nico modificó `PostgresObjectiveRepository.remove`: antes de `session.delete` hace `UPDATE transactions SET objective_id = NULL` sobre las transacciones de esa meta (un solo `commit`), para que la FK no provoque un 500 y el historial se conserve en el balance.
 - Nueva excepción de dominio `ObjectiveHasFundsError` (`domain/exceptions.py`). `RemoveObjective` ahora consulta la meta antes de borrar: `False` si no existe, y levanta `ObjectiveHasFundsError` si `saved_amount > 0` — la plata apartada ya salió del saldo disponible, así que borrar la meta la haría desaparecer del balance; hay que retirarla primero (lo que genera el ingreso de vuelta al saldo). La ruta `DELETE /objectives/{id}` traduce el error a **409** con el mensaje del dominio.
 - Tests: `tests/application/use_cases/test_remove_objective.py` (3 casos: sin plata, no encontrada, con plata rechazada y la meta intacta). Suite completa: 33 tests en verde. Pendiente: probar el DELETE real con Postman (flujo completo de la UI: retiro total + borrado).
+
+## 2026-11-23 — Ajuste de descubribilidad: "Editar o borrar" visible en el detalle de la meta
+
+- Nico no encontraba cómo borrar una meta: el botón vivía al final del formulario de edición, al que solo se llegaba bajando hasta el pie del detalle. Se movió el acceso a un botón **"Editar o borrar"** en el encabezado del detalle (`app/meta/[id].tsx`), arriba a la derecha, y se quitó el "Editar" del pie. El borrado en sí sigue en el formulario de edición (botón "Borrar" + advertencia).
+
+## 2026-11-23 — Cierre de la Fase 4 (Metas)
+
+- Fase 4 marcada como completa en `CLAUDE.md`: backend (entidad, casos de uso, Postgres, API) y frontend (lista, crear, editar, borrar, apartar/retirar) verificados con uso real. Pendiente menor, no bloqueante: tests automatizados de `PostgresObjectiveRepository` y de las rutas de `Objective`.
+- Documentada en `CLAUDE.md` la regla de borrado de `Objective` (409 con plata; la UI la devuelve al saldo antes de borrar; las transacciones vinculadas quedan con `objective_id = NULL`).
+- Fase 5 (Dashboard) pasa a "en progreso".
